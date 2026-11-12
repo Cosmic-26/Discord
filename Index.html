@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Chat</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #313338;
+      color: #dbdee1;
+    }
+
+    /* 1. Far-Left Server Rail */
+    .server-rail {
+      width: 72px;
+      background-color: #1e1f22;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .server-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: #313338;
+      color: #dbdee1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: border-radius 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+      position: relative;
+      user-select: none;
+    }
+
+    .server-icon:hover, .server-icon.active {
+      border-radius: 16px;
+      background-color: #5865f2;
+      color: #ffffff;
+    }
+
+    .server-icon.active::before {
+      content: "";
+      position: absolute;
+      left: -12px;
+      width: 8px;
+      height: 36px;
+      background-color: #ffffff;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .divider {
+      width: 32px;
+      height: 2px;
+      background-color: #35363c;
+      border-radius: 1px;
+      margin: 4px 0;
+    }
+
+    /* 2. Channel Sidebar */
+    .channel-sidebar {
+      width: 240px;
+      background-color: #2b2d31;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .server-header {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      font-weight: 700;
+      font-size: 16px;
+      color: #f2f3f5;
+      border-bottom: 1px solid #1f2023;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .channel-list {
+      flex: 1;
+      padding: 12px 8px;
+      overflow-y: auto;
+    }
+
+    .category-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #949ba4;
+      text-transform: uppercase;
+      padding: 8px 8px 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .channel-item {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      margin-bottom: 2px;
+      border-radius: 4px;
+      color: #949ba4;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .channel-item:hover {
+      background-color: #35373c;
+      color: #dbdee1;
+    }
+
+    .channel-item.active {
+      background-color: #404249;
+      color: #ffffff;
+    }
+
+    .channel-hash {
+      font-size: 18px;
+      margin-right: 6px;
+      color: #80848e;
+    }
+
+    /* User Panel at Bottom of Channel Sidebar */
+    .user-panel {
+      height: 52px;
+      background-color: #232428;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #23a55a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .username-input {
+      background: transparent;
+      border: none;
+      color: #f2f3f5;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      width: 100%;
+    }
+
+    .username-input:focus {
+      background-color: #1e1f22;
+      border-radius: 3px;
+      padding: 1px 4px;
+    }
+
+    .user-status {
+      font-size: 12px;
+      color: #949ba4;
+    }
+
+    /* 3. Main Chat Area */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #313338;
+      min-width: 0;
+    }
+
+    .chat-header {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #1f2023;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      gap: 8px;
+    }
+
+    .chat-header-hash {
+      font-size: 22px;
+      color: #80848e;
+      font-weight: 500;
+    }
+
+    .chat-header-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: #f2f3f5;
+    }
+
+    .chat-header-topic {
+      font-size: 13px;
+      color: #949ba4;
+      margin-left: 12px;
+      padding-left: 12px;
+      border-left: 1px solid #3f4147;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .messages-container {
+      flex: 1;
+      padding: 20px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .welcome-banner {
+      margin-top: auto;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #3f4147;
+    }
+
+    .welcome-banner h2 {
+      font-size: 28px;
+      color: #f2f3f5;
+      margin-bottom: 6px;
+    }
+
+    .welcome-banner p {
+      color: #949ba4;
+      font-size: 15px;
+    }
+
+    .message {
+      display: flex;
+      gap: 14px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .message:hover {
+      background-color: #2e3035;
+    }
+
+    .msg-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+      font-size: 15px;
+    }
+
+    .msg-content {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .msg-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .msg-author {
+      font-weight: 600;
+      font-size: 15px;
+      color: #f2f3f5;
+    }
+
+    .msg-time {
+      font-size: 12px;
+      color: #949ba4;
+    }
+
+    .msg-text {
+      font-size: 15px;
+      line-height: 1.4;
+      color: #dbdee1;
+      word-wrap: break-word;
+    }
+
+    /* Message Input Box */
+    .input-wrapper {
+      padding: 0 16px 24px;
+    }
+
+    .message-form {
+      background-color: #383a40;
+      border-radius: 8px;
+      padding: 11px 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .message-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #dbdee1;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .message-input::placeholder {
+      color: #6d6f78;
+    }
+
+    /* 4. Right Member Sidebar */
+    .member-sidebar {
+      width: 240px;
+      background-color: #2b2d31;
+      padding: 16px 12px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .member-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+
+    .member-item:hover {
+      background-color: #35373c;
+    }
+
+    .member-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      position: relative;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #23a55a;
+      border: 2px solid #2b2d31;
+      border-radius: 50%;
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+    }
+
+    .member-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: #949ba4;
+    }
+
+    /* Hide member sidebar on small screens */
+    @media (max-width: 850px) {
+      .member-sidebar {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Server Rail -->
+  <nav class="server-rail" id="serverRail"></nav>
+
+  <!-- 2. Channel List -->
+  <aside class="channel-sidebar">
+    <div class="server-header" id="serverTitle">Hangout Hub</div>
+    <div class="channel-list" id="channelList"></div>
+    <div class="user-panel">
+      <div class="user-avatar" id="currentUserAvatar">Y</div>
+      <div class="user-info">
+        <input type="text" id="usernameInput" class="username-input" value="You" maxlength="20" title="Click to edit your display name">
+        <span class="user-status">Online</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 3. Main Chat Area -->
+  <main class="chat-area">
+    <header class="chat-header">
+      <span class="chat-header-hash">#</span>
+      <span class="chat-header-title" id="currentChannelName">general</span>
+      <span class="chat-header-topic" id="currentChannelTopic">General discussion and daily chat</span>
+    </header>
+
+    <div class="messages-container" id="messagesContainer"></div>
+
+    <div class="input-wrapper">
+      <form class="message-form" id="messageForm">
+        <input type="text" class="message-input" id="messageInput" placeholder="Message #general" autocomplete="off">
+      </form>
+    </div>
+  </main>
+
+  <!-- 4. Member Sidebar -->
+  <aside class="member-sidebar">
+    <div class="category-label">Online — 4</div>
+    <div class="member-item">
+      <div class="member-avatar" style="background-color: #5865f2;">A<span class="status-dot"></span></div>
+      <span class="member-name" style="color: #f2f3f5;">Alex</span>
+    </div>
+    <div class="member-item">
+      <div class="member-avatar" style="background-color: #eb459e;">M<span class="status-dot"></span></div>
+      <span class="member-name">Maya</span>
+    </div>
+    <div class="member-item">
+      <div class="member-avatar" style="background-color: #f0b232;">S<span class="status-dot"></span></div>
+      <span class="member-name">Sam</span>
+    </div>
+    <div class="member-item">
+      <div class="member-avatar" style="background-color: #23a55a;">Y<span class="status-dot"></span></div>
